@@ -45,8 +45,9 @@ fun StudentRegistrationScreen(viewModel: StudentViewModel = viewModel()) {
     var studentId by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var program by remember { mutableStateOf("") }
+    var editingStudent by remember {mutableStateOf>Student?>(null)}
 
-    Column(modifier = Modifier
+    Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
         .padding(16.dp)
         .fillMaxSize()) {
 
@@ -56,31 +57,50 @@ fun StudentRegistrationScreen(viewModel: StudentViewModel = viewModel()) {
 
         Button(
             onClick = {
-                viewModel.addStudent(Student(studentId, name, program))
+                if (editingStudent == null) {
+                    viewModel.addStudent(Student(studentId, name,
+                        program))
+                } else {
+                    viewModel.updateStudent(Student(studentId, name,
+                        program, editingStudent!!.docId))
+                    editingStudent = null
+                }
                 studentId = ""
                 name = ""
                 program = ""
-            },
-            modifier = Modifier.padding(top = 8.dp)
+            }
         ) {
-            Text("Submit")
+            Text(if (editingStudent == null) "Submit" else "Update")
         }
-
-        Divider(modifier = Modifier.padding(vertical = 16.dp))
-
-        Text("Student List", style = MaterialTheme.typography.titleMedium)
 
         LazyColumn {
             items(viewModel.students) { student ->
-                Text("${student.id} - ${student.name} - ${student.program}")
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                    Text("${student.id} - ${student.name} -
+                        ${student.program}")
+                    Button(onClick = {
+                        studentId = student.id
+                        name = student.name
+                        program = student.program
+                        editingStudent = student
+                    }) {
+                        Text("Edit")
+                    }
+                    Button(onClick = {
+                        viewModel.deleteStudent(student)
+                    }) {
+                        Text("Delete")
+                    }
+                }
             }
         }
     }
-}
+    }
 
 
 
-@Composable
+
+    @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
         text = "Hello $name!",
